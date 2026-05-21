@@ -34,6 +34,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- ══ 경로 설정 ══════════════════════════════════════════════════════ -->
@@ -97,12 +98,8 @@
                         <DataGridTemplateColumn Header="유형" Width="46" CanUserResize="False">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border CornerRadius="3" Margin="3,3"
-                                            Background="{Binding Type,
-                                                Converter={x:Null}}"
-                                            >
-                                        <!-- 폴더/파일 태그 -->
-                                        <TextBlock x:Name="TbType"
+                                    <Border CornerRadius="3" Margin="3,3">
+                                        <TextBlock
                                                    Text="{Binding TypeLabel}"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"
@@ -273,5 +270,34 @@
                 </StackPanel>
             </Grid>
         </GroupBox>
+
+        <!-- ══ 하단 액션 ══════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="3" Margin="0,4,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                    Content="임시저장"
+                    Width="80"
+                    Click="BtnSaveTemp_Click"
+                    ToolTip="현재 경로·예약 설정을 파일에 저장합니다"/>
+
+            <Button Grid.Column="1"
+                    Content="초기화"
+                    Width="70" Margin="6,0,0,0"
+                    Foreground="#FFCC3333"
+                    Click="BtnReset_Click"
+                    ToolTip="경로·예약 설정을 모두 초기화합니다"/>
+
+            <TextBlock Grid.Column="2"
+                       x:Name="TxtSaveFeedback"
+                       VerticalAlignment="Center"
+                       Margin="12,0,0,0"
+                       FontSize="12"
+                       Foreground="#FF4CAF50"/>
+        </Grid>
     </Grid>
 </Window>

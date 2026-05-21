@@ -518,6 +518,60 @@ namespace UpdatePlanner
             parent.AppendChild(el);
         }
 
+        // ─── 임시저장 / 초기화 ───────────────────────────────────────────────
+
+        private void BtnSaveTemp_Click(object sender, RoutedEventArgs e)
+        {
+            SaveSettings();
+            TxtSaveFeedback.Text = $"✓ 저장됨  ({DateTime.Now:HH:mm:ss})";
+            TxtSaveFeedback.Foreground = System.Windows.Media.Brushes.SeaGreen;
+        }
+
+        private void BtnReset_Click(object sender, RoutedEventArgs e)
+        {
+            string message =
+                "아래 설정이 모두 초기화됩니다.\n\n" +
+                "  ● 경로 설정  —  추가된 배포 경로 매핑 전체 (폴더·파일 모두)\n" +
+                "  ● 예약 설정  —  상세 설정한 일시·반복 주기\n" +
+                "  ● 저장 파일  —  settings.xml 삭제\n\n" +
+                "※ 현재 진행 중인 예약이 있으면 자동으로 취소됩니다.\n" +
+                "※ 지금까지 생성된 로그 파일은 삭제되지 않습니다.\n\n" +
+                "초기화하시겠습니까?";
+
+            var confirm = MessageBox.Show(message, "초기화 확인",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            // 진행 중 예약 취소
+            if (_nextFireTime.HasValue)
+                BtnCancelSchedule_Click(null, null);
+
+            // 매핑 목록 초기화
+            _mappings.Clear();
+
+            // 예약 설정 초기화
+            _scheduleConfig = null;
+            TxtScheduleSummary.Text       = "예약 설정 없음  —  [상세 설정]을 눌러 일시/주기를 구성하세요.";
+            TxtScheduleSummary.Foreground = System.Windows.Media.Brushes.DarkGray;
+
+            // 저장 파일 삭제
+            try
+            {
+                if (File.Exists(ConfigFile))
+                    File.Delete(ConfigFile);
+            }
+            catch (Exception ex)
+            {
+                Log($"설정 파일 삭제 실패: {ex.Message}");
+            }
+
+            TxtStatus.Text        = "초기화 완료";
+            TxtSaveFeedback.Text      = "";
+            Log("설정이 초기화되었습니다.");
+        }
+
         // ─── 로그 ────────────────────────────────────────────────────────────
 
         private void Log(string message)

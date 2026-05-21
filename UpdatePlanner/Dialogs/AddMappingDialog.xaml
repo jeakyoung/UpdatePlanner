@@ -1,7 +1,7 @@
 <Window x:Class="UpdatePlanner.AddMappingDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="배포 경로 추가" Width="520" Height="170"
+        Title="배포 경로 추가" Width="520" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
