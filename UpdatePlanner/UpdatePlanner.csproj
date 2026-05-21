@@ -63,19 +63,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <!-- Main Window -->
     <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="ExitDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="AddMappingDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="ScheduleDetailDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -83,22 +72,40 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ExitDialog.xaml.cs">
+
+    <!-- Dialogs -->
+    <Page Include="Dialogs\ExitDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="Dialogs\ExitDialog.xaml.cs">
       <DependentUpon>ExitDialog.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AddMappingDialog.xaml.cs">
+    <Page Include="Dialogs\AddMappingDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="Dialogs\AddMappingDialog.xaml.cs">
       <DependentUpon>AddMappingDialog.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ScheduleDetailDialog.xaml.cs">
+    <Page Include="Dialogs\ScheduleDetailDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="Dialogs\ScheduleDetailDialog.xaml.cs">
       <DependentUpon>ScheduleDetailDialog.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DeployMapping.cs" />
-    <Compile Include="ScheduleConfig.cs" />
-    <Compile Include="FileCopyService.cs" />
-    <Compile Include="LogService.cs" />
+
+    <!-- Models -->
+    <Compile Include="Models\DeployMapping.cs" />
+    <Compile Include="Models\ScheduleConfig.cs" />
+
+    <!-- Services -->
+    <Compile Include="Services\FileCopyService.cs" />
+    <Compile Include="Services\LogService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
