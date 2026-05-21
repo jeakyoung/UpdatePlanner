@@ -4,10 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Update Planner" Height="500" Width="620"
+        Title="Update Planner" Height="310" Width="620"
         ResizeMode="CanMinimize"
-        WindowStartupLocation="CenterScreen"
-        Closing="Window_Closing">
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <Style TargetType="Label">
@@ -35,7 +34,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- 경로 설정 -->
@@ -52,9 +50,9 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Label Grid.Row="0" Grid.Column="0" Content="업데이트 파일:"/>
+                <Label Grid.Row="0" Grid.Column="0" Content="업데이트 폴더:"/>
                 <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtSource"
-                         ToolTip="복사할 파일 또는 폴더 경로"/>
+                         ToolTip="하위 파일 전체를 복사할 소스 폴더 경로"/>
                 <Button Grid.Row="0" Grid.Column="2" Content="찾아보기"
                         Margin="6,0,0,0" Click="BtnBrowseSource_Click"/>
 
@@ -72,22 +70,35 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="80"/>
                     <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="50"/>
-                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Label Content="예약 일시:"/>
+                <Label Content="예약 일시:" VerticalAlignment="Center"/>
                 <DatePicker Grid.Column="1" x:Name="DateSchedule"
                             VerticalAlignment="Center" Height="26"
                             ToolTip="업데이트 날짜"/>
-                <Label Grid.Column="2" Content="시간:" HorizontalAlignment="Right" Margin="4,0,4,0"/>
-                <TextBox Grid.Column="3" x:Name="TxtTime" Text="00:00"
-                         ToolTip="HH:mm 형식 (예: 03:00)"/>
+                <Label Grid.Column="2" Content="시간:" Margin="8,0,6,0" VerticalAlignment="Center"/>
+
+                <!-- 시간 입력 -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox x:Name="TxtHour" Text="00" Width="32" TextAlignment="Center"
+                             MaxLength="2"
+                             PreviewTextInput="TimeBox_PreviewTextInput"
+                             LostFocus="TxtHour_LostFocus"/>
+                    <TextBlock Text=":" VerticalAlignment="Center"
+                               FontSize="16" FontWeight="Bold" Margin="4,0"/>
+                    <TextBox x:Name="TxtMinute" Text="00" Width="32" TextAlignment="Center"
+                             MaxLength="2"
+                             PreviewTextInput="TimeBox_PreviewTextInput"
+                             LostFocus="TxtMinute_LostFocus"/>
+                </StackPanel>
+
                 <Button Grid.Column="5" x:Name="BtnStart" Content="예약 시작"
-                        Margin="4,0,0,0"
+                        Margin="8,0,0,0"
                         Background="#FF4CAF50" Foreground="White" FontWeight="Bold"
                         Click="BtnStart_Click"/>
                 <Button Grid.Column="6" x:Name="BtnCancelSchedule" Content="예약 취소"
@@ -117,22 +128,13 @@
                         VerticalAlignment="Center" Margin="0,0,6,0"
                         Click="BtnRunNow_Click"
                         ToolTip="예약 없이 즉시 복사를 실행합니다"/>
-                <Button Grid.Column="2" Content="로그 지우기"
-                        VerticalAlignment="Center"
-                        Click="BtnClearLog_Click"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Label Content="로그 보관:" VerticalAlignment="Center" Padding="0"/>
+                    <TextBox x:Name="TxtRetentionDays" Text="3" Width="38" Margin="4,0,0,0"
+                             ToolTip="이 일수보다 오래된 로그 파일을 자동으로 삭제합니다"/>
+                    <Label Content="일" VerticalAlignment="Center" Padding="4,0,0,0"/>
+                </StackPanel>
             </Grid>
-        </GroupBox>
-
-        <!-- 로그 -->
-        <GroupBox Grid.Row="3" Header="실행 로그">
-            <TextBox x:Name="TxtLog"
-                     IsReadOnly="True"
-                     VerticalScrollBarVisibility="Auto"
-                     HorizontalScrollBarVisibility="Auto"
-                     TextWrapping="NoWrap"
-                     FontFamily="Consolas" FontSize="11"
-                     Background="#FF1E1E1E" Foreground="#FFD4D4D4"
-                     BorderThickness="0" Padding="6"/>
         </GroupBox>
     </Grid>
 </Window>

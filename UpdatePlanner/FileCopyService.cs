@@ -10,26 +10,16 @@ namespace UpdatePlanner
         /// <summary>
         /// sourcePath의 모든 파일/폴더를 destPath로 복사합니다. (덮어쓰기)
         /// </summary>
+        /// <summary>
+        /// sourcePath 폴더의 하위 파일/폴더를 전부 destPath로 복사합니다. (덮어쓰기)
+        /// 소스 폴더 자체는 생성되지 않고 내용물만 대상에 복사됩니다.
+        /// </summary>
         public static async Task CopyAsync(string sourcePath, string destPath, Action<string> log, CancellationToken ct)
         {
-            bool isFile = File.Exists(sourcePath);
-            bool isDir  = Directory.Exists(sourcePath);
+            if (!Directory.Exists(sourcePath))
+                throw new DirectoryNotFoundException($"소스 폴더를 찾을 수 없습니다: {sourcePath}");
 
-            if (!isFile && !isDir)
-                throw new FileNotFoundException($"소스 경로를 찾을 수 없습니다: {sourcePath}");
-
-            if (isFile)
-            {
-                Directory.CreateDirectory(destPath);
-                string dest = Path.Combine(destPath, Path.GetFileName(sourcePath));
-                log($"복사: {Path.GetFileName(sourcePath)}");
-                await CopyFileAsync(sourcePath, dest, ct);
-                log($"완료: {Path.GetFileName(sourcePath)}");
-            }
-            else
-            {
-                await CopyDirectoryAsync(sourcePath, destPath, log, ct);
-            }
+            await CopyDirectoryAsync(sourcePath, destPath, log, ct);
         }
 
         private static async Task CopyDirectoryAsync(string sourceDir, string destDir, Action<string> log, CancellationToken ct)
@@ -49,7 +39,7 @@ namespace UpdatePlanner
                 log($"완료: {fileName}");
             }
 
-            // 하위 폴더 재귀 복사
+            // 하위 폴더 복사
             foreach (string srcSubDir in Directory.GetDirectories(sourceDir))
             {
                 ct.ThrowIfCancellationRequested();
