@@ -9,7 +9,10 @@
       "Bash(cmd.exe:*)",
       "Bash(cmd /c \"\\\\\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe\\\\\" \\\\\"C:\\\\Users\\\\USER\\\\source\\\\repos\\\\UpdatePlanner\\\\UpdatePlanner\\\\UpdatePlanner.csproj\\\\\" /p:Configuration=Debug /nologo /verbosity:normal 2>&1\")",
       "Bash(cmd /c \"\\\\\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\MSBuild\\\\Current\\\\Bin\\\\amd64\\\\MSBuild.exe\\\\\" \\\\\"C:\\\\Users\\\\USER\\\\source\\\\repos\\\\UpdatePlanner\\\\UpdatePlanner\\\\UpdatePlanner.csproj\\\\\" /p:Configuration=Debug /verbosity:detailed 2>&1 | more\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(\"C:\\\\Windows\\\\Microsoft.NET\\\\Framework\\\\v4.0.30319\\\\MSBuild.exe\" UpdatePlanner\\\\UpdatePlanner.csproj /p:Configuration=Debug /nologo /v:minimal)",
+      "Bash(msbuild UpdatePlanner.csproj /p:Configuration=Debug /nologo /v:minimal)",
+      "Bash(cmd:*)"
     ]
   }
 }

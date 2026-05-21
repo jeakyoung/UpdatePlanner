@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Update Planner" Height="310" Width="620"
+        Title="Update Planner" Height="440" Width="700"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen">
 
@@ -36,78 +36,210 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 경로 설정 -->
+        <!-- ══ 경로 설정 ══════════════════════════════════════════════════════ -->
         <GroupBox Grid.Row="0" Header="경로 설정">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="6"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
 
-                <Label Grid.Row="0" Grid.Column="0" Content="업데이트 폴더:"/>
-                <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtSource"
-                         ToolTip="하위 파일 전체를 복사할 소스 폴더 경로"/>
-                <Button Grid.Row="0" Grid.Column="2" Content="찾아보기"
-                        Margin="6,0,0,0" Click="BtnBrowseSource_Click"/>
+                <!-- 매핑 목록 -->
+                <DataGrid Grid.Row="0"
+                          x:Name="DgMappings"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          CanUserSortColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          MinHeight="68"
+                          MaxHeight="180"
+                          BorderBrush="#FFCCCCCC"
+                          BorderThickness="1"
+                          RowHeight="26"
+                          FontSize="12"
+                          FocusVisualStyle="{x:Null}">
 
-                <Label Grid.Row="2" Grid.Column="0" Content="배포 위치:"/>
-                <TextBox Grid.Row="2" Grid.Column="1" x:Name="TxtDest"
-                         ToolTip="파일을 복사할 대상 폴더 경로"/>
-                <Button Grid.Row="2" Grid.Column="2" Content="찾아보기"
-                        Margin="6,0,0,0" Click="BtnBrowseDest_Click"/>
+                    <!-- 행 선택 시 UI 눌림 없애기 -->
+                    <DataGrid.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                                         Color="Transparent"/>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                                         Color="Black"/>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                                         Color="Transparent"/>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                                         Color="Black"/>
+                    </DataGrid.Resources>
+
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        </Style>
+                    </DataGrid.RowStyle>
+
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+
+                    <DataGrid.Columns>
+
+                        <!-- 유형 뱃지 -->
+                        <DataGridTemplateColumn Header="유형" Width="46" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="3" Margin="3,3"
+                                            Background="{Binding Type,
+                                                Converter={x:Null}}"
+                                            >
+                                        <!-- 폴더/파일 태그 -->
+                                        <TextBlock x:Name="TbType"
+                                                   Text="{Binding TypeLabel}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   Padding="4,1"/>
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#FF4CAF50"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding TypeLabel}" Value="파일">
+                                                        <Setter Property="Background" Value="#FF2196F3"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- 업데이트 원본 -->
+                        <DataGridTextColumn Header="업데이트 원본"
+                                            Binding="{Binding Source}"
+                                            Width="*" MinWidth="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    <Setter Property="ToolTip" Value="{Binding Source}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- 화살표 -->
+                        <DataGridTemplateColumn Header="" Width="26" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="→" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="#FF999999"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- 배포 위치 -->
+                        <DataGridTextColumn Header="배포 위치"
+                                            Binding="{Binding Dest}"
+                                            Width="*" MinWidth="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    <Setter Property="ToolTip" Value="{Binding Dest}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- 삭제 버튼 — PreviewMouseLeftButtonDown으로 처리해 row 선택 플래시 방지 -->
+                        <DataGridTemplateColumn Header="" Width="34" CanUserResize="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="✕"
+                                            Tag="{Binding}"
+                                            PreviewMouseLeftButtonDown="BtnDeleteMapping_PreviewMouseDown"
+                                            Width="24" Height="20"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Foreground="#FFCC3333"
+                                            FontWeight="Bold"
+                                            Cursor="Hand"
+                                            FocusVisualStyle="{x:Null}"
+                                            ToolTip="이 항목 삭제"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- 추가 버튼 두 개 -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal">
+                    <Button Content="+ 폴더 추가"
+                            Margin="0,0,6,0"
+                            Click="BtnAddFolder_Click"
+                            ToolTip="소스 폴더의 하위 파일 전체를 배포 폴더에 복사합니다"/>
+                    <Button Content="+ 파일 추가"
+                            Click="BtnAddFile_Click"
+                            ToolTip="지정한 파일 하나를 배포 폴더에 복사합니다"/>
+                </StackPanel>
             </Grid>
         </GroupBox>
 
-        <!-- 예약 설정 -->
+        <!-- ══ 업데이트 예약 ════════════════════════════════════════════════════ -->
         <GroupBox Grid.Row="1" Header="업데이트 예약">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Label Content="예약 일시:" VerticalAlignment="Center"/>
-                <DatePicker Grid.Column="1" x:Name="DateSchedule"
-                            VerticalAlignment="Center" Height="26"
-                            ToolTip="업데이트 날짜"/>
-                <Label Grid.Column="2" Content="시간:" Margin="8,0,6,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0"
+                           x:Name="TxtScheduleSummary"
+                           Text="예약 설정 없음  —  [상세 설정]을 눌러 일시/주기를 구성하세요."
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Foreground="#FF999999"
+                           FontSize="12"/>
 
-                <!-- 시간 입력 -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBox x:Name="TxtHour" Text="00" Width="32" TextAlignment="Center"
-                             MaxLength="2"
-                             PreviewTextInput="TimeBox_PreviewTextInput"
-                             LostFocus="TxtHour_LostFocus"/>
-                    <TextBlock Text=":" VerticalAlignment="Center"
-                               FontSize="16" FontWeight="Bold" Margin="4,0"/>
-                    <TextBox x:Name="TxtMinute" Text="00" Width="32" TextAlignment="Center"
-                             MaxLength="2"
-                             PreviewTextInput="TimeBox_PreviewTextInput"
-                             LostFocus="TxtMinute_LostFocus"/>
-                </StackPanel>
-
-                <Button Grid.Column="5" x:Name="BtnStart" Content="예약 시작"
+                <Button Grid.Column="1"
+                        Content="상세 설정"
                         Margin="8,0,0,0"
+                        Click="BtnScheduleDetail_Click"
+                        ToolTip="예약 일시와 반복 주기를 설정합니다"/>
+
+                <Button Grid.Column="2"
+                        x:Name="BtnStart"
+                        Content="예약 시작"
+                        Margin="6,0,0,0"
                         Background="#FF4CAF50" Foreground="White" FontWeight="Bold"
                         Click="BtnStart_Click"/>
-                <Button Grid.Column="6" x:Name="BtnCancelSchedule" Content="예약 취소"
-                        Margin="6,0,0,0" IsEnabled="False"
+
+                <Button Grid.Column="3"
+                        x:Name="BtnCancelSchedule"
+                        Content="예약 취소"
+                        Margin="6,0,0,0"
+                        IsEnabled="False"
                         Click="BtnCancelSchedule_Click"/>
             </Grid>
         </GroupBox>
 
-        <!-- 상태 -->
+        <!-- ══ 상태 ════════════════════════════════════════════════════════════ -->
         <GroupBox Grid.Row="2" Header="상태">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -117,17 +249,22 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
-                    <TextBlock x:Name="TxtStatus" Text="대기 중"
+                    <TextBlock x:Name="TxtStatus"
+                               Text="대기 중"
                                FontSize="13" FontWeight="SemiBold" Foreground="#FF333333"/>
-                    <TextBlock x:Name="TxtCountdown" Text=""
+                    <TextBlock x:Name="TxtCountdown"
+                               Text=""
                                FontSize="12" Foreground="#FF0078D7"
                                FontFamily="Consolas" Margin="0,2,0,0"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" x:Name="BtnRunNow" Content="지금 실행"
+                <Button Grid.Column="1"
+                        x:Name="BtnRunNow"
+                        Content="지금 실행"
                         VerticalAlignment="Center" Margin="0,0,6,0"
                         Click="BtnRunNow_Click"
                         ToolTip="예약 없이 즉시 복사를 실행합니다"/>
+
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Label Content="로그 보관:" VerticalAlignment="Center" Padding="0"/>
                     <TextBox x:Name="TxtRetentionDays" Text="3" Width="38" Margin="4,0,0,0"

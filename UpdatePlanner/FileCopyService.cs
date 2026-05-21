@@ -8,9 +8,6 @@ namespace UpdatePlanner
     public static class FileCopyService
     {
         /// <summary>
-        /// sourcePath의 모든 파일/폴더를 destPath로 복사합니다. (덮어쓰기)
-        /// </summary>
-        /// <summary>
         /// sourcePath 폴더의 하위 파일/폴더를 전부 destPath로 복사합니다. (덮어쓰기)
         /// 소스 폴더 자체는 생성되지 않고 내용물만 대상에 복사됩니다.
         /// </summary>
@@ -59,6 +56,25 @@ namespace UpdatePlanner
             {
                 await srcStream.CopyToAsync(destStream, 81920, ct);
             }
+        }
+
+        /// <summary>
+        /// 파일 한 개를 destFolder 안으로 복사합니다. (덮어쓰기)
+        /// </summary>
+        public static async Task CopyFileToFolderAsync(string sourceFile, string destFolder, Action<string> log, CancellationToken ct)
+        {
+            if (!File.Exists(sourceFile))
+                throw new FileNotFoundException($"파일을 찾을 수 없습니다: {sourceFile}");
+
+            Directory.CreateDirectory(destFolder);
+
+            string fileName = Path.GetFileName(sourceFile);
+            string destFile = Path.Combine(destFolder, fileName);
+
+            ct.ThrowIfCancellationRequested();
+            log($"복사: {fileName}");
+            await CopyFileAsync(sourceFile, destFile, ct);
+            log($"완료: {fileName}");
         }
 
         private static string MakeRelative(string fullPath, string basePath)
