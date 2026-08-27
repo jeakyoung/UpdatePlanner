@@ -122,7 +122,7 @@
                         </DataGridTemplateColumn>
 
                         <!-- 업데이트 원본 -->
-                        <DataGridTextColumn Header="업데이트 원본"
+                        <DataGridTextColumn Header="업로드 원본"
                                             Binding="{Binding Source}"
                                             Width="*" MinWidth="110">
                             <DataGridTextColumn.ElementStyle>

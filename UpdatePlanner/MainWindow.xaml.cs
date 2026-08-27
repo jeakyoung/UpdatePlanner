@@ -24,6 +24,13 @@ namespace UpdatePlanner
         private bool _isRunning;
         private bool _forceExit;
 
+        private struct BackupEntry
+        {
+            public DeployMapping Mapping;
+            public string        BackupPath;
+            public bool          HadContent;
+        }
+
         private System.Windows.Forms.NotifyIcon _trayIcon;
         private LogService _logService;
 
@@ -36,6 +43,10 @@ namespace UpdatePlanner
             InitializeComponent();
 
             DgMappings.ItemsSource = _mappings;
+
+            Title = IsRunningAsAdmin()
+                ? "Update Planner  [관리자]"
+                : "Update Planner";
 
             InitializeTrayIcon();
             LoadSettings();
@@ -300,12 +311,31 @@ namespace UpdatePlanner
                 _trayIcon.ShowBalloonTip(2000, "Update Planner", "업데이트를 시작합니다.",
                     System.Windows.Forms.ToolTipIcon.Info);
 
+            string sessionTemp = Path.Combine(Path.GetTempPath(),
+                $"UpdatePlanner_{DateTime.Now:yyyyMMddHHmmss}");
+            var backups = new System.Collections.Generic.List<BackupEntry>();
+            bool success = false;
+
             try
             {
                 var snapshot = _mappings.ToList();
                 foreach (var mapping in snapshot)
                 {
                     _cts.Token.ThrowIfCancellationRequested();
+
+                    // 복사 전 dest 현재 상태 백업
+                    string backupPath = Path.Combine(sessionTemp,
+                        Guid.NewGuid().ToString("N"));
+                    Log($"백업: {mapping.Dest}");
+                    bool hadContent = await FileCopyService.BackupDestAsync(
+                        mapping, backupPath, _cts.Token);
+                    backups.Add(new BackupEntry
+                    {
+                        Mapping    = mapping,
+                        BackupPath = backupPath,
+                        HadContent = hadContent
+                    });
+
                     Log($"--- [{mapping.TypeLabel}] {mapping.Source}  →  {mapping.Dest}");
 
                     if (mapping.Type == MappingType.Folder)
@@ -314,6 +344,7 @@ namespace UpdatePlanner
                         await FileCopyService.CopyFileToFolderAsync(mapping.Source, mapping.Dest, Log, _cts.Token);
                 }
 
+                success = true;
                 TxtStatus.Text = $"업데이트 완료  ({DateTime.Now:HH:mm:ss})";
                 Log("========== 업데이트 완료 ==========");
 
@@ -329,6 +360,32 @@ namespace UpdatePlanner
                 TxtStatus.Text = "업데이트 취소됨";
                 Log("업데이트가 취소되었습니다.");
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                TxtStatus.Text = "권한 오류";
+                Log($"권한 오류: {ex.Message}");
+
+                if (!IsRunningAsAdmin())
+                {
+                    var answer = MessageBox.Show(
+                        "관리자 권한이 필요한 경로입니다.\n\n" +
+                        "관리자 권한으로 재시작하시겠습니까?\n" +
+                        "(현재 설정은 자동 저장 후 재시작됩니다.)",
+                        "권한 부족",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (answer == MessageBoxResult.Yes)
+                        RestartAsAdmin();
+                }
+                else
+                {
+                    MessageBox.Show(
+                        $"관리자 권한으로 실행 중이지만 접근이 거부되었습니다.\n\n{ex.Message}",
+                        "권한 오류",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
             catch (Exception ex)
             {
                 TxtStatus.Text = "업데이트 실패";
@@ -343,6 +400,36 @@ namespace UpdatePlanner
             }
             finally
             {
+                // 실패 또는 취소 시 완료된 매핑 전부 롤백
+                if (!success && backups.Count > 0)
+                {
+                    Log("---------- 롤백 시작 ----------");
+                    TxtStatus.Text = "롤백 중...";
+                    foreach (var entry in backups)
+                    {
+                        Log($"롤백: {entry.Mapping.Dest}");
+                        await FileCopyService.RestoreDestAsync(
+                            entry.Mapping, entry.BackupPath, entry.HadContent, Log);
+                    }
+                    Log("---------- 롤백 완료 ----------");
+                    TxtStatus.Text = "롤백 완료";
+
+                    if (!IsVisible)
+                        _trayIcon.ShowBalloonTip(4000, "Update Planner", "롤백이 완료되었습니다.",
+                            System.Windows.Forms.ToolTipIcon.Warning);
+                    else
+                        MessageBox.Show("오류가 발생하여 변경 내용을 모두 원복하였습니다.", "롤백 완료",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+
+                // 임시 백업 디렉터리 정리
+                try
+                {
+                    if (Directory.Exists(sessionTemp))
+                        Directory.Delete(sessionTemp, true);
+                }
+                catch { }
+
                 // 반복 예약이면 다음 실행 시각 계산
                 if (_scheduleConfig != null && _scheduleConfig.Repeat != RepeatMode.None)
                 {
@@ -570,6 +657,39 @@ namespace UpdatePlanner
             TxtStatus.Text        = "초기화 완료";
             TxtSaveFeedback.Text      = "";
             Log("설정이 초기화되었습니다.");
+        }
+
+        // ─── 관리자 권한 ─────────────────────────────────────────────────────
+
+        private static bool IsRunningAsAdmin()
+        {
+            var identity  = System.Security.Principal.WindowsIdentity.GetCurrent();
+            var principal = new System.Security.Principal.WindowsPrincipal(identity);
+            return principal.IsInRole(
+                System.Security.Principal.WindowsBuiltInRole.Administrator);
+        }
+
+        private void RestartAsAdmin()
+        {
+            SaveSettings();   // 현재 설정 저장 후 재시작
+
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName        = System.Reflection.Assembly.GetExecutingAssembly().Location,
+                UseShellExecute = true,
+                Verb            = "runas"   // UAC 승격 요청
+            };
+
+            try
+            {
+                System.Diagnostics.Process.Start(psi);
+                _forceExit = true;
+                Application.Current.Shutdown();
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                // 사용자가 UAC 프롬프트를 취소한 경우 — 아무것도 하지 않음
+            }
         }
 
         // ─── 로그 ────────────────────────────────────────────────────────────

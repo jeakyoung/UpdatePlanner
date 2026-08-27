@@ -83,5 +83,72 @@ namespace UpdatePlanner
                 ? fullPath.Substring(basePath.Length).TrimStart(Path.DirectorySeparatorChar)
                 : Path.GetFileName(fullPath);
         }
+
+        // ─── 롤백용 백업 / 복원 ───────────────────────────────────────────────
+
+        /// <summary>
+        /// 복사 실행 전 dest 현재 상태를 backupPath로 백업합니다.
+        /// 백업할 내용이 있으면 true, 없으면 false를 반환합니다.
+        /// </summary>
+        public static async Task<bool> BackupDestAsync(
+            DeployMapping mapping, string backupPath, CancellationToken ct)
+        {
+            if (mapping.Type == MappingType.Folder)
+            {
+                if (!Directory.Exists(mapping.Dest)) return false;
+                await CopyDirectoryAsync(mapping.Dest, backupPath, _ => { }, ct);
+                return true;
+            }
+            else
+            {
+                string destFile = Path.Combine(mapping.Dest, Path.GetFileName(mapping.Source));
+                if (!File.Exists(destFile)) return false;
+                Directory.CreateDirectory(backupPath);
+                await CopyFileAsync(destFile,
+                    Path.Combine(backupPath, Path.GetFileName(mapping.Source)), ct);
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// backupPath에 저장된 내용을 원래 dest로 복원합니다.
+        /// 복원 중 취소는 허용하지 않습니다(CancellationToken.None 사용).
+        /// </summary>
+        public static async Task RestoreDestAsync(
+            DeployMapping mapping, string backupPath, bool hadContent, Action<string> log)
+        {
+            try
+            {
+                if (mapping.Type == MappingType.Folder)
+                {
+                    if (Directory.Exists(mapping.Dest))
+                        Directory.Delete(mapping.Dest, true);
+
+                    if (hadContent && Directory.Exists(backupPath))
+                        await CopyDirectoryAsync(backupPath, mapping.Dest, _ => { }, CancellationToken.None);
+                }
+                else
+                {
+                    string destFile = Path.Combine(mapping.Dest, Path.GetFileName(mapping.Source));
+                    if (File.Exists(destFile))
+                        File.Delete(destFile);
+
+                    if (hadContent)
+                    {
+                        string backupFile = Path.Combine(backupPath, Path.GetFileName(mapping.Source));
+                        if (File.Exists(backupFile))
+                        {
+                            Directory.CreateDirectory(mapping.Dest);
+                            await CopyFileAsync(backupFile, destFile, CancellationToken.None);
+                        }
+                    }
+                }
+                log($"  롤백 완료: {mapping.Dest}");
+            }
+            catch (Exception ex)
+            {
+                log($"  롤백 실패 [{mapping.Dest}]: {ex.Message}");
+            }
+        }
     }
 }
